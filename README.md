@@ -94,4 +94,30 @@ setField("nama_field", ["confirm"], "method");
 setField("nama_field", ["password"], "method");
 ```
 
+* Email, field input harus merupakan alamat email yang valid
+```php
+setField("nama_field", ["email"], "method");
+```
+
+* Url harus merupakan alamat yang valid
+```php
+setField("nama_field", ["url"], "method");
+```
+
+* Distinct, input field array harus unique
+```php
+setField("nama_field", ["distinct"], "method");
+```
+
+* Extension, validasi extensi uploadfile
+```php
+setField("nama_field", ["extension:jpeg,png"], "method");
+```
+
+* File size, validasi ukuran upload file
+```php
+setField("nama_field", ["file_size:4000"], "method");
+// size dalam bytes
+```
+
 Untuk sementera baru itu yang dapat saya buat. belum sesempuran milik laravel :)

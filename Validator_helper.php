@@ -158,6 +158,52 @@ class Validator_helper
         }
     }
 
+    // validasi email
+    protected function email()
+    {
+        if ( !filter_var($this->fieldValue, FILTER_VALIDATE_EMAIL) ) {
+            $this->setErrors("$this->fieldName tidak valid");
+        }
+    }
+    
+    // validasi url
+    protected function url()
+    {
+        if ( !filter_var($this->fieldValue, FILTER_VALIDATE_URL) ) {
+            $this->setErrors("$this->fieldName harus alamat URL yang valid");
+        }
+    }
+
+    // distinct
+    protected function distinct()
+    {
+        $unique = array_unique($this->fieldValue);
+        if ( count($this->fieldValue) != count($unique) ) {
+            $this->setErrors("$this->fieldName memiliki duplikasi data");
+        }
+    }
+
+    // validasi file extension
+    protected function extension($val)
+    {
+        $validExtension = explode(",", $val);
+        $file = $_FILES[$this->fieldDefault]['name'];
+
+        if ( !in_array(pathinfo($file, PATHINFO_EXTENSION), $validExtension) ) {
+            $this->setErrors("$this->fieldName harus merupakan tipe file: $val");
+        }
+    }
+
+    // validasi file size upload
+    protected function file_size($val)
+    {
+        $file = $_FILES[$this->fieldDefault]['size'];
+        
+        if ( $file > $val ) {
+            $this->setErrors("$this->fieldName maksimal $val bytes");
+        }
+    }
+
     // mengatur error
     protected function setErrors($message)
     {
