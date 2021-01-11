@@ -33,6 +33,47 @@ setField("nama_field", ["aturan"], "method");
 // method: post || get -> default: post
 ```
 
+## Bekerja dengan form array
+Cara menggunakan validasi jika menggunakan inputan array seperti contoh berikut:
+```html
+<form action="" method="POST">
+    <input type="text" name="field[]">
+    <input type="text" name="field[]">
+</form>
+```
+Maka penulisan validasinya seperti berikut:
+```php
+$validator->setField("field[]", ["rules"])->getErrors();
+
+/**
+ * Output
+ * array(
+ *    "field_0" => "Field 0 message aturan",
+ *    "field_1" => "Field 1 message aturan",
+ * )
+ * /
+```
+Berbeda halnya dengan validasi input file array, anda cukup menuliskan nama fieldnya saja seperti contoh berikut:
+```html
+<form action="" method="POST">
+    <input type="file" name="gambar[]">
+    <input type="file" name="gambar[]">
+</for
+```
+
+Maka penulisan validasinya seperti berikut:
+```php
+$validator->setField("gambar", ["rules"])->getErrors();
+
+/**
+ * Output
+ * array(
+ *    "gambar_0" => "Gambar 0 message aturan",
+ *    "gambar_1" => "Gambar 1 message aturan",
+ * )
+ * /
+```
+
 ## Fungsi yang tersedia
 * Required
 ```php
@@ -117,6 +158,12 @@ setField("nama_field", ["extension:jpeg,png"], "method");
 * File size, validasi ukuran upload file
 ```php
 setField("nama_field", ["file_size:4000"], "method");
+// size dalam bytes
+```
+
+* File required, maka upload file wajib di isi
+```php
+setField("nama_field", ["file_required"], "method");
 // size dalam bytes
 ```
 

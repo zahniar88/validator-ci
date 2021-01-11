@@ -2,8 +2,8 @@
 
 class Validator_helper
 {
-    protected $fieldDefault;
     protected $fieldName;
+    protected $fieldAlias;
     protected $fieldValue;
     protected $method;
     protected $errors = [];
@@ -16,10 +16,31 @@ class Validator_helper
     public function setField($field, $rules = [], $method = "post")
     {
         $this->fieldValue = $this->CI->input->$method($field);
-        $this->fieldName = str_replace("_", " ", ucfirst($field));
-        $this->fieldDefault = $field;
+        $this->fieldAlias = str_replace("_", " ", ucfirst($field));
+        $this->fieldName = $field;
         $this->method = $method;
+        
+        if ( is_array($this->fieldValue) ) {
+            $field_alias =  str_replace("[]", "", ucfirst($this->fieldAlias));
+            $field_index = str_replace("[]", "", $this->fieldName);
+            foreach ($this->fieldValue as $key => $value) {
+                $this->fieldValue = $value;
+            
+                $this->fieldAlias = $field_alias . " " . $key;
+                $this->fieldName = $field_index . "_" . $key;
 
+                $this->setValidator($rules);
+            }
+        } else {
+            $this->setValidator($rules);
+        }
+
+        return $this;
+    }
+
+    // generate validator
+    protected function setValidator($rules)
+    {
         foreach ($rules as $rule) {
             $data   = explode(":", $rule);
             $func   = $data[0];
@@ -27,15 +48,13 @@ class Validator_helper
 
             $this->$func($value);
         }
-
-        return $this;
     }
 
     // validasi required
     protected function required()
     {
         if ( strlen($this->fieldValue) == 0 ) {
-            $this->setErrors("$this->fieldName wajib diisi");
+            $this->setErrors("$this->fieldAlias wajib diisi");
         }
     }
 
@@ -43,7 +62,7 @@ class Validator_helper
     protected function min($val)
     {
         if ( strlen($this->fieldValue) < $val ) {
-            $this->setErrors("$this->fieldName  minimal $val karakter");
+            $this->setErrors("$this->fieldAlias  minimal $val karakter");
         }
     }
     
@@ -51,7 +70,7 @@ class Validator_helper
     protected function max($val)
     {
         if ( strlen($this->fieldValue) > $val ) {
-            $this->setErrors("$this->fieldName  maksimal $val karakter");
+            $this->setErrors("$this->fieldAlias  maksimal $val karakter");
         }
     }
 
@@ -59,7 +78,7 @@ class Validator_helper
     protected function alpha_space()
     {
         if ( !preg_match("/(^[a-zA-Z ]+$)/", $this->fieldValue) ) {
-            $this->setErrors("$this->fieldName hanya berupa huruf dan spasi");
+            $this->setErrors("$this->fieldAlias hanya berupa huruf dan spasi");
         }
     }
     
@@ -67,7 +86,7 @@ class Validator_helper
     protected function alpha_numeric()
     {
         if ( !preg_match("/(^[a-zA-Z0-9]+$)/", $this->fieldValue) ) {
-            $this->setErrors("$this->fieldName hanya berupa huruf dan angka");
+            $this->setErrors("$this->fieldAlias hanya berupa huruf dan angka");
         }
     }
     
@@ -75,7 +94,7 @@ class Validator_helper
     protected function numeric()
     {
         if ( !preg_match("/(^[0-9]+$)/", $this->fieldValue) ) {
-            $this->setErrors("$this->fieldName hanya berupa angka");
+            $this->setErrors("$this->fieldAlias hanya berupa angka");
         }
     }
     
@@ -83,7 +102,7 @@ class Validator_helper
     protected function regex($val)
     {
         if ( !preg_match("/$val/", $this->fieldValue) ) {
-            $this->setErrors("$this->fieldName tidak valid");
+            $this->setErrors("$this->fieldAlias tidak valid");
         }
     }
     
@@ -101,7 +120,7 @@ class Validator_helper
         $valid = $result->row();
 
         if ( $valid->count < 1 ) {
-            $this->setErrors("$this->fieldName tidak ada pada database");
+            $this->setErrors("$this->fieldAlias tidak ada pada database");
         }
     }
     
@@ -122,7 +141,7 @@ class Validator_helper
         $rows = $result->row();
 
         if ( $rows && $exceptVal != $rows->$except ) {
-            $this->setErrors("$this->fieldName telah digunakan sebelumnya");
+            $this->setErrors("$this->fieldAlias telah digunakan sebelumnya");
         }
     }
 
@@ -131,7 +150,7 @@ class Validator_helper
     {
         $data = explode(",", $val);
         if ( !in_array($this->fieldValue, $data) ) {
-            $this->setErrors("$this->fieldName tidak valid");
+            $this->setErrors("$this->fieldAlias tidak valid");
         }
     }
 
@@ -139,10 +158,10 @@ class Validator_helper
     protected function confirm()
     {
         $method = $this->method;
-        $confirm = $this->CI->input->$method($this->fieldDefault . "_confirm");
+        $confirm = $this->CI->input->$method($this->fieldName . "_confirm");
 
         if ( $this->fieldValue != $confirm ) {
-            $this->setErrors("Konfirmasi ".strtolower($this->fieldName)." tidak sama");
+            $this->setErrors("Konfirmasi ".strtolower($this->fieldAlias)." tidak sama");
         }
     }
     
@@ -150,11 +169,11 @@ class Validator_helper
     protected function password()
     {
         if ( !preg_match("/([a-z]+)/", $this->fieldValue) ) {
-            $this->setErrors("$this->fieldName setidak nya memiliki 1 huruf kecil");
+            $this->setErrors("$this->fieldAlias setidak nya memiliki 1 huruf kecil");
         } elseif ( !preg_match("/([A-Z]+)/", $this->fieldValue) ) {
-            $this->setErrors("$this->fieldName setidak nya memiliki 1 huruf kapital");
+            $this->setErrors("$this->fieldAlias setidak nya memiliki 1 huruf kapital");
         } elseif ( !preg_match("/([0-9]+)/", $this->fieldValue) ) {
-            $this->setErrors("$this->fieldName setidak nya memiliki 1 huruf angka");
+            $this->setErrors("$this->fieldAlias setidak nya memiliki 1 huruf angka");
         }
     }
 
@@ -162,7 +181,7 @@ class Validator_helper
     protected function email()
     {
         if ( !filter_var($this->fieldValue, FILTER_VALIDATE_EMAIL) ) {
-            $this->setErrors("$this->fieldName tidak valid");
+            $this->setErrors("$this->fieldAlias tidak valid");
         }
     }
     
@@ -170,7 +189,7 @@ class Validator_helper
     protected function url()
     {
         if ( !filter_var($this->fieldValue, FILTER_VALIDATE_URL) ) {
-            $this->setErrors("$this->fieldName harus alamat URL yang valid");
+            $this->setErrors("$this->fieldAlias harus alamat URL yang valid");
         }
     }
 
@@ -179,7 +198,7 @@ class Validator_helper
     {
         $unique = array_unique($this->fieldValue);
         if ( count($this->fieldValue) != count($unique) ) {
-            $this->setErrors("$this->fieldName memiliki duplikasi data");
+            $this->setErrors("$this->fieldAlias memiliki duplikasi data");
         }
     }
 
@@ -187,28 +206,50 @@ class Validator_helper
     protected function extension($val)
     {
         $validExtension = explode(",", $val);
-        $file = $_FILES[$this->fieldDefault]['name'];
+        $file = $_FILES[$this->fieldName]['name'];
 
         if ( !in_array(pathinfo($file, PATHINFO_EXTENSION), $validExtension) ) {
-            $this->setErrors("$this->fieldName harus merupakan tipe file: $val");
+            $this->setErrors("$this->fieldAlias harus merupakan tipe file: $val");
         }
     }
 
     // validasi file size upload
     protected function file_size($val)
     {
-        $file = $_FILES[$this->fieldDefault]['size'];
+        $file = $_FILES[$this->fieldName]['size'];
         
         if ( $file > $val ) {
-            $this->setErrors("$this->fieldName maksimal $val bytes");
+            $this->setErrors("$this->fieldAlias maksimal $val bytes");
+        }
+    }
+
+    // file required
+    protected function file_required()
+    {
+        $file = $_FILES[$this->fieldName];
+
+        if ( is_array($file['error']) ) {
+            $field_alias =  str_replace("[]", "", ucfirst($this->fieldAlias));
+            $field_index = str_replace("[]", "", $this->fieldName);
+            foreach ($file['error'] as $key => $value) {
+                if ( $value != 0 ) {
+                    $this->fieldAlias = $field_alias . " " . $key;
+                    $this->fieldName = $field_index . "_" . $key;
+                    $this->setErrors("$this->fieldAlias wajib diisi");
+                }
+            }
+        } else {
+            if ( $file['error'] != 0 ) {
+                $this->setErrors("$this->fieldAlias wajib diisi");
+            }
         }
     }
 
     // mengatur error
     protected function setErrors($message)
     {
-        if ( !array_key_exists($this->fieldDefault, $this->errors) ) {
-            $this->errors[$this->fieldDefault] = $message;
+        if ( !array_key_exists($this->fieldName, $this->errors) ) {
+            $this->errors[$this->fieldName] = $message;
         }
     }
 
